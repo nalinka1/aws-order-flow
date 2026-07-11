@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# --- Virtual environment ---
+.venv/
+venv/
+env/
+
+# --- AWS CDK ---
+cdk_app/cdk.out/
+cdk.out/
+*.cdk.staging/
+.cdk.staging/
+
+# --- AWS credentials / secrets (never commit these) ---
+.env
+*.pem
+*.key
+credentials.json
+aws_credentials*
+
+# --- Elastic Beanstalk (Part C) ---
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# --- Node ---
+node_modules/
+package-lock.json
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+
+# --- OS noise ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs / temp ---
+*.log
+*.tmp
