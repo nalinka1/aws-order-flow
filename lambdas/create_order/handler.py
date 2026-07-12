@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import boto3
 
@@ -12,6 +13,21 @@ TABLE_NAME = os.environ["ORDERS_TABLE_NAME"]
 TOPIC_ARN = os.environ["ORDER_CREATED_TOPIC_ARN"]
 
 table = dynamodb.Table(TABLE_NAME)
+
+
+class DecimalEncoder(json.JSONEncoder):
+    """
+    DynamoDB requires Decimal for numeric attributes (to avoid float
+    precision loss), but JSON has no native Decimal type. This encoder
+    converts Decimal -> int (if whole) or float (otherwise) only at the
+    point of JSON serialization, so the DynamoDB write still uses the
+    precise Decimal value.
+    """
+
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return int(o) if o % 1 == 0 else float(o)
+        return super().default(o)
 
 
 def handler(event, context):
@@ -34,7 +50,7 @@ def handler(event, context):
         )
 
     try:
-        amount = float(amount)
+        amount = Decimal(str(amount))
     except (TypeError, ValueError):
         return _response(400, {"message": "amount must be numeric"})
 
@@ -53,7 +69,7 @@ def handler(event, context):
 
     sns.publish(
         TopicArn=TOPIC_ARN,
-        Message=json.dumps(order_item),
+        Message=json.dumps(order_item, cls=DecimalEncoder),
         MessageAttributes={
             "eventType": {"DataType": "String", "StringValue": "OrderCreated"}
         },
@@ -66,5 +82,5 @@ def _response(status_code, body_dict):
     return {
         "statusCode": status_code,
         "headers": {"Content-Type": "application/json"},
-        "body": json.dumps(body_dict),
+        "body": json.dumps(body_dict, cls=DecimalEncoder),
     }
