@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Standalone CloudFormation template (no CDK) provisioning an S3 bucket
+  and an IAM role with read-only access to that bucket. Deployed directly
+  via the AWS CLI to demonstrate raw CloudFormation fluency underneath CDK.
+
+Resources:
+
+  DemoBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub "orderflow-cf-demo-${AWS::AccountId}-${AWS::Region}"
+      Tags:
+        - Key: Project
+          Value: OrderFlow
+
+  DemoBucketReadRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: OrderFlowCfDemoReadRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3ReadOnlyAccessToDemoBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DemoBucket.Arn
+                  - !Sub "${DemoBucket.Arn}/*"
+      Tags:
+        - Key: Project
+          Value: OrderFlow
+
+Outputs:
+  BucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref DemoBucket
+
+  RoleArn:
+    Description: ARN of the IAM role granted read access to the bucket
+    Value: !GetAtt DemoBucketReadRole.Arn
