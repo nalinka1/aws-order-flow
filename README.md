@@ -61,21 +61,4 @@ Try posting with `"amount": -5` to see the ProcessOrder Lambda deliberately fail
 and the message land in the DLQ after 3 retries — good live demo of at-least-once
 delivery + idempotency talking points.
 
-## Teardown
 
-```bash
-cd cdk_app
-cdk destroy --all
-```
-
-Run this at the end of any work session. For Part A there's no cost risk left running,
-but destroying keeps your account tidy and avoids any surprise with S3/log retention.
-**Once Aurora (Part B) is deployed, this step is no longer optional** — see the cost
-note above.
-
-## Talking points — Part A
-*"I rebuilt a small event-driven order pipeline this weekend — API Gateway into a
-Lambda that writes to DynamoDB and publishes to SNS, fanning out through SQS to a
-second Lambda that validates and writes a receipt to S3. It's a good sandbox for
-talking about async decoupling, at-least-once delivery, and scoping IAM roles per
-Lambda rather than sharing one broad role."*
